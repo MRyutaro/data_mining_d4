@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 // 2点間の距離を計算する関数
 double distance(double x1, double y1, double x2, double y2)
@@ -9,34 +10,82 @@ double distance(double x1, double y1, double x2, double y2)
 	return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
 }
 
-// k-meansを実行する関数. dataは2次元配列, labelは1次元配列. kはクラスタ数
-void k_means(double **data, int *label, int k)
+// k-meansを実行する関数
+void k_means(double data[][2], int label[], int data_num, int k)
 {
-	// labelのサイズを取得
-	int size = sizeof(label) / sizeof(int);
-	printf("%d\n", size);
+	double old_center[k][2];
+	double center[k][2];
+	int flag = 1;
+	float eps = 0.0001;
 
-	// centerを2次元配列として扱うためのポインタ配列を確保
-	double **center = (double **)malloc(sizeof(double *) * k);
-	// center2の各要素に1次元配列を確保
-	for (int i = 0; i < k; i++)
-	{
-		center[i] = (double *)malloc(sizeof(double) * 2);
-	}
+	// 乱数の初期化
+	srand((unsigned)time(NULL));
 	// size個の中からk個の中心点をランダムに選ぶ
 	for (int i = 0; i < k; i++)
 	{
 		// 0 ~ size-1の乱数を生成
+		int r = rand() % data_num;
 		// data[r]をcenter[i]にコピー
-		int r = rand() % size;
-		printf("%d\n", r);
 		center[i][0] = data[r][0];
 		center[i][1] = data[r][1];
+		// printf("init:\tcenter[%d] = (%lf, %lf)\n", i, center[i][0], center[i][1]);
 	}
-	// centerをprintfで確認
-	for (int i = 0; i < k; i++)
+
+	while (flag)
 	{
-		printf("(%f, %f)\n", center[i][0], center[i][1]);
+		// 各点を最も近い中心点に割り当てる
+		for (int i = 0; i < data_num; i++)
+		{
+			double min_dist = INFINITY;
+			for (int j = 0; j < k; j++)
+			{
+				double dist = distance(data[i][0], data[i][1], center[j][0], center[j][1]);
+				if (dist < min_dist)
+				{
+					min_dist = dist;
+					label[i] = j;
+				}
+			}
+			// printf("label[%d] = %d\n", i, label[i]);
+		}
+
+		// 中心点を再計算する
+		for (int i = 0; i < k; i++)
+		{
+			double sum_x = 0;
+			double sum_y = 0;
+			int count = 0;
+		
+			for (int j = 0; j < data_num; j++)
+			{
+				if (label[j] == i)
+				{
+					sum_x += data[j][0];
+					sum_y += data[j][1];
+					count++;
+				}
+			}
+			old_center[i][0] = center[i][0];
+			old_center[i][1] = center[i][1];
+			center[i][0] = sum_x / count;
+			center[i][1] = sum_y / count;
+			// printf("old_center[%d] = (%lf, %lf), center[%d] = (%lf, %lf)\n", i, old_center[i][0], old_center[i][1], i, center[i][0], center[i][1]);
+		}
+
+		// 中心点が変化しなくなったら終了
+		int count = 0;
+		for (int i = 0; i < k; i++)
+		{
+			if (center[i][0] - old_center[i][0] < eps && center[i][1] - old_center[i][1] < eps)
+			{
+				count++;
+			}
+		}
+		if (count == k)
+		{
+			flag = 0;
+		}
+		// printf("count = %d, flag = %d\n", count, flag);
 	}
 }
 
@@ -45,6 +94,7 @@ int main(int argc, char *argv[])
 	FILE *fp_in, *fp_out;
 	int input;
 	int count = 0;
+	int data_num = 200;
 	double data[200][2]; // the number of data is 200
 	int label[200];
 
@@ -63,7 +113,8 @@ int main(int argc, char *argv[])
 	}
 
 	// k-means//
-	// k_means((double **)data, label, 3);
+	int k = 3;
+	k_means(data, label, data_num, k);
 	//
 
 	///////////
