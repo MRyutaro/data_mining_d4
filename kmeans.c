@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	}
 
 	// k-means//
-	k_means((double **)data, label, 3);
+	// k_means((double **)data, label, 3);
 	//
 
 	///////////
