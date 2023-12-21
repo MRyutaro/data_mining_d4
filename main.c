@@ -12,6 +12,10 @@ double distance(double x1, double y1, double x2, double y2)
 // k-meansを実行する関数. dataは2次元配列, labelは1次元配列. kはクラスタ数
 void k_means(double **data, int *label, int k)
 {
+	// labelのサイズを取得
+	int size = sizeof(label) / sizeof(int);
+	printf("%d\n", size);
+
 	// centerを2次元配列として扱うためのポインタ配列を確保
 	double **center = (double **)malloc(sizeof(double *) * k);
 	// center2の各要素に1次元配列を確保
@@ -19,14 +23,15 @@ void k_means(double **data, int *label, int k)
 	{
 		center[i] = (double *)malloc(sizeof(double) * 2);
 	}
-	// dataの配列の大きさを取得
-	int size = sizeof(data) / sizeof(data[0]);
 	// size個の中からk個の中心点をランダムに選ぶ
 	for (int i = 0; i < k; i++)
 	{
 		// 0 ~ size-1の乱数を生成
-		int r = rand() % size;
 		// data[r]をcenter[i]にコピー
+		int r = rand() % size;
+		printf("%d\n", r);
+		center[i][0] = data[r][0];
+		center[i][1] = data[r][1];
 	}
 	// centerをprintfで確認
 	for (int i = 0; i < k; i++)
