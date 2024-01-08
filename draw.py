@@ -10,6 +10,9 @@ def plot_csv_data(file_path):
 
     print(df)
 
+    # もしラベルがない場合は、全て0とする
+    if df['label'].isnull().all():
+        df['label'] = 0
     # データをプロット
     plt.scatter(
         df['x'], df['y'], c=df['label'], cmap='viridis', marker='o')
