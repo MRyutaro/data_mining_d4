@@ -111,11 +111,15 @@ void lof(double data[][2], double label[], int data_num, int k)
 		double lof_i = 0;
 		for (int j = 0; j < k; j++)
 		{
+			// k_nearest[j]のk_nearestを求める
+			int k_nearest_j[k];
+			calculate_k_nearest(k_nearest[j], k, data, data_num, k_nearest_j);
 			// lrd_k_jを求める
 			double reach_dist_k_j[k];
-			calculate_reach_dist_k(k_nearest[j], k, data, data_num, k_nearest, reach_dist_k_j);
+			calculate_reach_dist_k(k_nearest[j], k, data, data_num, k_nearest_j, reach_dist_k_j);
 			double lrd_k_j = calculate_lrd_k(reach_dist_k_j, k);
-			lof_i += lrd_k_j;
+			// printf("lrd_k_j[%d] = %lf\t", k_nearest[j], lrd_k_j);
+			lof_i += lrd_k_j / lrd_k_i;
 		}
 		lof_i = lof_i / (k * lrd_k_i);
 		printf("lof[%d] = %lf", i, lof_i);
