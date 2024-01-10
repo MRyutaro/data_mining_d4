@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <math.h>
 
+/*
+ * マクロ定義
+ */
+#define max(A, B) ((A) > (B) ? (A) : (B))
+
 
 // 2点間の距離を計算する関数
 double distance(double x1, double y1, double x2, double y2)
@@ -12,19 +17,18 @@ double distance(double x1, double y1, double x2, double y2)
 // LOFを実行する関数
 void lof(double data[][2], int label[], int data_num, int k)
 {
-	// k個の近傍点を格納する配列
-	int k_nearest[k];
-
 	for (int i = 0; i < data_num; i++)
 	{
 		printf("data[%d] = (%lf, %lf)\t", i, data[i][0], data[i][1]);
-		// data[i]からの距離を計算する
+		// 1. data[i]からの距離を計算する
 		double distances[data_num];
 		for (int j = 0; j < data_num; j++)
 		{
 			distances[j] = distance(data[i][0], data[i][1], data[j][0], data[j][1]);
 		}
-		// data[i]のk近傍点を求める
+
+		// 2. data[i]のk近傍点を求める
+		int k_nearest[k];
 		for (int j = 0; j < k; j++)
 		{
 			// distancesの中で最小の値を探す
@@ -37,7 +41,7 @@ void lof(double data[][2], int label[], int data_num, int k)
 				{
 					continue;
 				}
-				else if (distances[l] < min)
+				if (distances[l] < min)
 				{
 					min = distances[l];
 					min_index = l;
@@ -48,11 +52,33 @@ void lof(double data[][2], int label[], int data_num, int k)
 			// distancesの最小値を大きな値に変更する
 			distances[min_index] = 1000000;
 		}
-		// k_nearestを出力する
+		// k_nearest(N_k(i))を出力する。k_nearest[0]が一番近い点、k_nearest[k-1]が一番遠い点。
+		// for (int j = 0; j < k; j++)
+		// {
+		// 	printf("%d ", k_nearest[j]);
+		// }
+
+		// 3. reach_dist_k(i, j)を求める。ただし、jはk_nearestの要素。
+		double reach_dist_k[k];
 		for (int j = 0; j < k; j++)
 		{
-			printf("%d ", k_nearest[j]);
+			// reach_dist_k(i, j) = max{d(i, j), d(j, k_nearest[0])}
+			double d_ij = distance(data[i][0], data[i][1], data[k_nearest[j]][0], data[k_nearest[j]][1]);
+			double d_jk = distance(data[k_nearest[j]][0], data[k_nearest[j]][1], data[k_nearest[k-1]][0], data[k_nearest[k-1]][1]);
+			reach_dist_k[j] = max(d_ij, d_jk);
+			// 表示
+			// printf("\nk_nearest[%d]=%d, d(%d,%d)=%lf, d(%d,%d)=%lf, max=%lf", j, k_nearest[j], i, k_nearest[j], d_ij, k_nearest[j], k_nearest[k-1], d_jk, reach_dist_k[j]);
 		}
+
+		// 4. lrd_k(i)を求める
+		double lrd_k = 0;
+		for (int j = 0; j < k; j++)
+		{
+			lrd_k += reach_dist_k[j];
+		}
+		lrd_k = k / lrd_k;
+		// printf("\nlrd_k(%d)=%lf", i, lrd_k);
+	
 		printf("\n");
 	}
 }
