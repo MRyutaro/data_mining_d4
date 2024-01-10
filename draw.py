@@ -22,8 +22,8 @@ def plot_csv_data(file_path):
     plt.ylabel('y')
 
     # データ番号を表示
-    for i, txt in enumerate(range(0, len(df))):
-        plt.annotate(txt, (df['x'][i], df['y'][i]), textcoords="offset points", xytext=(0, 5), ha='center')
+    # for i, txt in enumerate(range(0, len(df))):
+    #     plt.annotate(txt, (df['x'][i], df['y'][i]), textcoords="offset points", xytext=(0, 5), ha='center')
 
     # グラフを表示
     plt.show()
