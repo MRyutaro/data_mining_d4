@@ -29,6 +29,7 @@ def calculate_kmeans(file_path, k):
     # グラフを表示
     plt.show()
 
+
 if __name__ == "__main__":
     # コマンドライン引数からファイルパスを取得
     file_path = sys.argv[1]

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.neighbors import LocalOutlierFactor
 
+
 def calculate_lof(file_path, k):
     # CSVファイルからデータを読み込む
     df = pd.read_csv(file_path, header=None, names=["x", "y"])
@@ -25,6 +26,7 @@ def calculate_lof(file_path, k):
 
     # グラフを表示
     plt.show()
+
 
 if __name__ == "__main__":
     # コマンドライン引数からファイルパスを取得
