@@ -119,7 +119,7 @@ void lof(double data[][2], double label[], int data_num, int k)
 			calculate_reach_dist_k(k_nearest[j], k, data, data_num, k_nearest_j, reach_dist_k_j);
 			double lrd_k_j = calculate_lrd_k(reach_dist_k_j, k);
 			// printf("lrd_k_j[%d] = %lf\t", k_nearest[j], lrd_k_j);
-			lof_i += lrd_k_j / lrd_k_i;
+			lof_i += lrd_k_j;
 		}
 		lof_i = lof_i / (k * lrd_k_i);
 		printf("lof[%d] = %lf", i, lof_i);
