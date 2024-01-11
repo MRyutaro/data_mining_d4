@@ -10,11 +10,12 @@ def calculate_dbscan(file_path, k):
     df = pd.read_csv(file_path, header=None, names=["x", "y"])
 
     # DBSCANクラスの初期化
-    dbscan = DBSCAN(eps=0.2)
+    dbscan = DBSCAN(eps=0.15)
 
     # データを学習させクラスタリングを行う
     clusters = dbscan.fit_predict(df)
     df['label'] = clusters
+    print(df)
 
     # クラスタリングの結果をプロット
     plt.scatter(
