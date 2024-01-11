@@ -9,6 +9,28 @@ double distance(double x1, double y1, double x2, double y2)
 	return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
 }
 
+// 与えられた点のε近傍点を探索する．
+void range_query(double data[][2], int data_num, int i, double eps, int neighbors[], int *neighbors_num)
+{
+    // 近傍点の数を0に初期化
+    *neighbors_num = 0;
+    // 各データについて
+    for (int j = 0; j < data_num; j++)
+    {
+        // 自身以外のデータで
+        if (i != j)
+        {
+            // 距離がeps以下なら
+            if (distance(data[i][0], data[i][1], data[j][0], data[j][1]) < eps)
+            {
+                // 近傍点に追加
+                neighbors[*neighbors_num] = j;
+                (*neighbors_num)++;
+            }
+        }
+    }
+}
+
 // DBSCANを実行する関数
 void dbscan(double data[][2], int data_num, double eps, int min_points, int label[])
 {
@@ -28,36 +50,36 @@ void dbscan(double data[][2], int data_num, double eps, int min_points, int labe
         if (label[i] == -1)
         {
             // 半径eps内に含まれるデータ数を数える
-            int num = 0;
-            for (int j = 0; j < data_num; j++)
-            {
-                if (distance(data[i][0], data[i][1], data[j][0], data[j][1]) < eps)
-                {
-                    num++;
-                }
-            }
+            int neighbors[data_num];
+            int neighbors_num;
+            range_query(data, data_num, i, eps, neighbors, &neighbors_num);
+            // neighborsを表示
+            // printf("neighbors of %d: ", i);
+            // for (int j = 0; j < neighbors_num; j++)
+            // {
+            //     printf("%d ", neighbors[j]);
+            // }
+            // printf("\n");
 
             // 半径eps内にmin_points個のデータがあれば
-            if (num >= min_points)
+            if (neighbors_num >= min_points)
             {
-                // クラスタ番号をつける
-                cluster++;
-
                 // 自身をクラスタに追加
                 label[i] = cluster;
-
                 // 自身の半径eps内にあるデータをクラスタに追加
-                for (int j = 0; j < data_num; j++)
+                for (int j = 0; j < neighbors_num; j++)
                 {
-                    if (distance(data[i][0], data[i][1], data[j][0], data[j][1]) < eps)
+                    if (label[neighbors[j]] != -1)
                     {
-                        label[j] = cluster;
+                        
                     }
                 }
+                // クラスタ番号を更新
+                cluster++;
             }
         }
 
-        printf("%d: (%lf, %lf) %d\n", i, data[i][0], data[i][1], label[i]);
+        // printf("%d: (%lf, %lf) %d\n", i, data[i][0], data[i][1], label[i]);
     }
 }
 
@@ -85,7 +107,7 @@ int main(int argc, char *argv[])
 	}
 
 	// DBSCAN//
-    double eps = 0.5;
+    double eps = 0.1;
     int min_points = 5;
     dbscan(data, data_num, eps, min_points, label);
 	//
