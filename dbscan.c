@@ -10,7 +10,7 @@ double distance(double x1, double y1, double x2, double y2)
 }
 
 // 与えられた点のε近傍点を探索する．
-void range_query(double data[][2], int data_num, int i, double eps, int neighbors[], int *neighbors_num)
+void get_neighbors(double data[][2], int data_num, int i, double eps, int neighbors[], int *neighbors_num)
 {
     // 近傍点の数を0に初期化
     *neighbors_num = 0;
@@ -26,6 +26,51 @@ void range_query(double data[][2], int data_num, int i, double eps, int neighbor
                 // 近傍点に追加
                 neighbors[*neighbors_num] = j;
                 (*neighbors_num)++;
+            }
+        }
+    }
+
+    // neighborsを昇順にソート
+    for (int j = 0; j < *neighbors_num - 1; j++)
+    {
+        for (int k = *neighbors_num - 1; k > j; k--)
+        {
+            // 距離を比較
+            double dist_1 = distance(data[i][0], data[i][1], data[neighbors[k]][0], data[neighbors[k]][1]);
+            double dist_2 = distance(data[i][0], data[i][1], data[neighbors[k - 1]][0], data[neighbors[k - 1]][1]);
+            if (dist_1 < dist_2)
+            {
+                // 交換
+                int tmp = neighbors[k];
+                neighbors[k] = neighbors[k - 1];
+                neighbors[k - 1] = tmp;
+            }
+        }
+    }
+}
+
+// クラスタを拡張する関数。再帰的に呼び出される。
+void expand_cluster(double data[][2], int data_num, int i, int label[], int cluster, double eps, int min_points, int neighbors[], int neighbors_num)
+{
+    // 近傍点の数だけ繰り返す
+    for (int j = 0; j < neighbors_num; j++)
+    {
+        // 未分類のデータのみ処理
+        if (label[neighbors[j]] == -1)
+        {
+            // 近傍点をクラスタに追加
+            label[neighbors[j]] = cluster;
+
+            // 近傍点の近傍点を取得
+            int neighbors2[data_num];
+            int neighbors2_num;
+            get_neighbors(data, data_num, neighbors[j], eps, neighbors2, &neighbors2_num);
+
+            // 近傍点がmin_points以上ならば
+            if (neighbors2_num >= min_points)
+            {
+                // 近傍点の近傍点をクラスタに追加
+                expand_cluster(data, data_num, neighbors[j], label, cluster, eps, min_points, neighbors2, neighbors2_num);
             }
         }
     }
@@ -52,35 +97,25 @@ void dbscan(double data[][2], int data_num, double eps, int min_points, int labe
             // 半径eps内に含まれるデータ数を数える
             int neighbors[data_num];
             int neighbors_num;
-            range_query(data, data_num, i, eps, neighbors, &neighbors_num);
-            // neighborsを表示
-            // printf("neighbors of %d: ", i);
-            // for (int j = 0; j < neighbors_num; j++)
-            // {
-            //     printf("%d ", neighbors[j]);
-            // }
-            // printf("\n");
+            get_neighbors(data, data_num, i, eps, neighbors, &neighbors_num);
 
             // 半径eps内にmin_points個のデータがあれば
             if (neighbors_num >= min_points)
             {
                 // 自身をクラスタに追加
                 label[i] = cluster;
-                // 自身の半径eps内にあるデータをクラスタに追加
-                for (int j = 0; j < neighbors_num; j++)
-                {
-                    if (label[neighbors[j]] != -1)
-                    {
-                        
-                    }
-                }
-                // クラスタ番号を更新
+                // クラスタを拡張していく
+                expand_cluster(data, data_num, i, label, cluster, eps, min_points, neighbors, neighbors_num);
+                // クラスタが切れたら次のクラスタ番号へ
                 cluster++;
             }
         }
 
         // printf("%d: (%lf, %lf) %d\n", i, data[i][0], data[i][1], label[i]);
     }
+
+    // クラスタ数を表示
+    printf("cluster: %d\n", cluster);
 }
 
 int main(int argc, char *argv[])
