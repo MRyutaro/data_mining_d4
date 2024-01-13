@@ -27,6 +27,12 @@ def plot_csv_data(file_path):
     # for i, txt in enumerate(range(0, len(df))):
     #     plt.annotate(txt, (df['x'][i], df['y'][i]), textcoords="offset points", xytext=(0, 5), ha='center')
 
+    # labelが-1の数をカウント
+    n_noise = list(df['label']).count(-1)
+    print(f"count: {len(df) - n_noise}")
+    # labelごとの数をカウント
+    print(df.groupby('label').count().iloc[:, 0])
+
     # グラフを表示
     plt.show()
 

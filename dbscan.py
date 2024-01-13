@@ -15,7 +15,12 @@ def calculate_dbscan(file_path, k):
     # データを学習させクラスタリングを行う
     clusters = dbscan.fit_predict(df)
     df['label'] = clusters
-    print(df)
+
+    # labelが-1の数をカウント
+    n_noise = list(clusters).count(-1)
+    print(f"count: {len(clusters) - n_noise}")
+    # labelごとの数をカウント
+    print(df.groupby('label').count().iloc[:, 0])
 
     # クラスタリングの結果をプロット
     plt.scatter(
