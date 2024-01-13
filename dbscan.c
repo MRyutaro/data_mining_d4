@@ -49,6 +49,8 @@ void get_neighbors(double data[][2], int data_num, int i, double eps, int neighb
     }
 }
 
+int count = 0;
+
 // クラスタを拡張する関数。再帰的に呼び出される。
 void expand_cluster(double data[][2], int data_num, int i, int label[], int cluster, double eps, int min_points, int neighbors[], int neighbors_num)
 {
@@ -60,14 +62,16 @@ void expand_cluster(double data[][2], int data_num, int i, int label[], int clus
         {
             // 近傍点をクラスタに追加
             label[neighbors[j]] = cluster;
+            count++;
+            printf("%d: count=%d\ti=%d\n", neighbors[j], count, i);
 
             // 近傍点の近傍点を取得
             int neighbors2[data_num];
             int neighbors2_num;
             get_neighbors(data, data_num, neighbors[j], eps, neighbors2, &neighbors2_num);
 
-            // 近傍点がmin_points以上ならば
-            if (neighbors2_num >= min_points)
+            // 近傍点がmin_points-1以上ならば
+            if (neighbors2_num >= min_points - 1)
             {
                 // 近傍点の近傍点をクラスタに追加
                 expand_cluster(data, data_num, neighbors[j], label, cluster, eps, min_points, neighbors2, neighbors2_num);
@@ -99,11 +103,16 @@ void dbscan(double data[][2], int data_num, double eps, int min_points, int labe
             int neighbors_num;
             get_neighbors(data, data_num, i, eps, neighbors, &neighbors_num);
 
-            // 半径eps内にmin_points個のデータがあれば
-            if (neighbors_num >= min_points)
+            printf("%d(%lf, %lf): neighbors_num=%d\n", i, data[i][0], data[i][1], neighbors_num);
+
+            // 半径eps内にmin_points-1個のデータがあれば
+            if (neighbors_num >= min_points - 1)
             {
                 // 自身をクラスタに追加
                 label[i] = cluster;
+                count++;
+                printf("\ncluster: %d\n", cluster);
+                printf("%d: count=%d\n", i, count);
                 // クラスタを拡張していく
                 expand_cluster(data, data_num, i, label, cluster, eps, min_points, neighbors, neighbors_num);
                 // クラスタが切れたら次のクラスタ番号へ
@@ -113,9 +122,6 @@ void dbscan(double data[][2], int data_num, double eps, int min_points, int labe
 
         // printf("%d: (%lf, %lf) %d\n", i, data[i][0], data[i][1], label[i]);
     }
-
-    // クラスタ数を表示
-    printf("cluster: %d\n", cluster);
 }
 
 int main(int argc, char *argv[])
