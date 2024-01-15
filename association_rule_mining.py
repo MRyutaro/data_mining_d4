@@ -122,6 +122,60 @@ class AssociationRuleMining:
     def __init__(self) -> None:
         pass
 
+    def __check_one_hot_df(self, one_hot_df: pd.DataFrame) -> None:
+        """
+        one_hot_dfのチェックを行う
+
+        Parameters
+        ----------
+        one_hot_df : pd.DataFrame
+            one-hotエンコーディング後のデータ
+        """
+        assert isinstance(one_hot_df, pd.DataFrame), "one_hot_dfはpd.DataFrame型にしてください"
+        assert one_hot_df.dtypes.unique() == [bool], "one_hot_dfの中身はTrue/Falseにしてください"
+        assert len(one_hot_df.columns) > 0, "one_hot_dfにcolumnsがありません"
+
+    def calc_freq_and_ratio_of_each_items(self, one_hot_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        各商品の頻度と割合を計算する
+
+        Parameters
+        ----------
+        one_hot_df : pd.DataFrame
+            one-hotエンコーディング後のデータ
+
+        Returns
+        -------
+        pd.DataFrame
+            各商品の頻度と割合
+        """
+        self.__check_one_hot_df(one_hot_df)
+
+        # 各商品の頻度を計算する
+        frequency_of_items = one_hot_df.sum(axis=0)
+        # print(frequency_of_items)
+
+        # 各商品の割合を計算する
+        ratio_of_items = frequency_of_items / len(one_hot_df)
+        # print(ratio_of_items)
+
+        # 各商品の頻度と割合を結合する
+        freq_and_ratio_of_items = pd.concat([frequency_of_items, ratio_of_items], axis=1)
+        freq_and_ratio_of_items.columns = ["frequency", "ratio"]
+        # print(freq_and_ratio_of_items)
+        # print(type(freq_and_ratio_of_items))
+
+        return freq_and_ratio_of_items
+
+    def calc_support(self):
+        pass
+
+    def calc_confidence(self):
+        pass
+
+    def calc_association_rule(self):
+        pass
+
 
 if __name__ == "__main__":
     # コマンドライン引数からファイルパスを取得
@@ -130,4 +184,5 @@ if __name__ == "__main__":
     one_hot_df = OneHotEncoder().load_onehot(file_path)
     # print(one_hot_df)
 
-    # supportを計算する
+    freq_and_ratio_of_items = AssociationRuleMining().calc_freq_and_ratio_of_each_items(one_hot_df)
+    print(freq_and_ratio_of_items)
