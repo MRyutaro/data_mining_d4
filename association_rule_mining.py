@@ -136,7 +136,7 @@ class AssociationRuleMining:
         -------
         None
         """
-        self.__check_one_hot_df(one_hot_df)
+        self.__check_onehot_df(one_hot_df)
         one_hot_df = one_hot_df.iloc[:, :item_num]
         # すべてFalseの行を削除する
         one_hot_df = one_hot_df[~(one_hot_df == False).all(axis=1)]
@@ -150,7 +150,7 @@ class AssociationRuleMining:
         # confidenceのデータを格納するDataFrameを作成する
         self.confidence_df = pd.DataFrame(columns=["X", "Y", "X_support", "Y_support", "X_and_Y_support", "confidence"])
 
-    def __check_one_hot_df(self, one_hot_df: pd.DataFrame) -> None:
+    def __check_onehot_df(self, one_hot_df: pd.DataFrame) -> None:
         """
         one_hot_dfのチェックを行う
 
