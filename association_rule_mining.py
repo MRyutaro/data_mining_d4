@@ -143,6 +143,12 @@ class AssociationRuleMining:
         # indexを振り直す
         self.one_hot_df = one_hot_df.reset_index(drop=True)
         # print(self.one_hot_df)
+        self.items = list(self.one_hot_df.columns)
+        # print(self.items)
+        # supportのデータを格納するDataFrameを作成する
+        self.supports_df = pd.DataFrame(columns=["itemset", "support"])                    
+        # confidenceのデータを格納するDataFrameを作成する
+        self.confidence_df = pd.DataFrame(columns=["X", "Y", "confidence"])
 
     def __check_one_hot_df(self, one_hot_df: pd.DataFrame) -> None:
         """
@@ -237,16 +243,10 @@ class AssociationRuleMining:
         pd.DataFrame
             supportのデータ
         """
-        # supportのデータを格納するDataFrameを作成する
-        supports_df = pd.DataFrame(columns=["itemset", "support"])
-        # itemのリストを作成する
-        items: list = list(self.one_hot_df.columns)
-        # print(items)
-
         # 1から(商品数-1)までのforループを回す
-        for i in range(1, len(items)):
+        for i in range(1, len(self.items)):
             # i個の商品の全ての組み合わせを作成する
-            itemsets: list = self.__create_itemsets(items, i)
+            itemsets: list = self.__create_itemsets(self.items, i)
             # print(len(itemsets))
 
             # itemsetsのsupportを計算する
@@ -257,15 +257,96 @@ class AssociationRuleMining:
                 if support_df["support"].values[0] == 0:
                     continue
                 # supportのデータを追加する
-                supports_df = pd.concat([supports_df, support_df], ignore_index=True)
+                self.supports_df = pd.concat([self.supports_df, support_df])
 
         # supportの降順にソートする
-        supports_df = supports_df.sort_values("support", ascending=False, ignore_index=True)
+        self.supports_df = self.supports_df.sort_values("support", ascending=False, ignore_index=True)
 
-        return supports_df
+        return self.supports_df
+
+    def __get_support(self, itemset: list) -> float:
+        """
+        itemsetのsupportを取得する
+
+        Parameters
+        ----------
+        itemset : list
+            商品の組み合わせ
+
+        Returns
+        -------
+        float
+            support
+        """
+        assert isinstance(itemset, list), "itemsetはlist型にしてください"
+        assert len(itemset) > 0, "itemsetに商品がありません"
+        assert not self.supports_df.empty, "self.supports_dfが空です"
+
+        # itemsetを含む行を抽出し、その行の"support"列の値を取得
+        support = self.supports_df[self.supports_df["itemset"].apply(lambda x: set(itemset) == set(x))]["support"].values
+        if len(support) == 0:
+            return 0
+        else:
+            return support[0]
 
     def calc_confidence(self) -> pd.DataFrame:
-        pass
+        """
+        X->Yのconfidenceを計算する。ただし、XとYはself.listの商品の組み合わせである。
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        pd.DataFrame
+            confidenceのデータ
+        """
+        # もしself.supports_dfが空の場合は、self.calc_support()を実行する
+        if self.supports_df.empty:
+            self.calc_support()
+
+        itemsets = []
+        for i in range(1, len(self.items)):
+            itemset = self.__create_itemsets(self.items, i)
+            # print(itemset)  # 2次元配列
+            # print(len(itemset))  # 10, 45, 120, 210, ...
+            itemsets += itemset
+
+        # print(itemsets)
+        # print(len(itemsets))
+
+        # itemsetsからX,Yを選ぶ
+        for X in itemsets:
+            for Y in itemsets:
+                # XとYが重複する場合はスキップする
+                if set(X) & set(Y):
+                    continue
+                # print(X, Y)
+
+                # Xのsupportを取得する
+                X_support = self.__get_support(X)
+                if X_support == 0:
+                    continue
+                # XかつYのsupportを取得する
+                X_and_Y_support = self.__get_support(X + Y)
+                if X_and_Y_support == 0:
+                    continue
+
+                # confidenceを計算する
+                confidence = X_and_Y_support / X_support
+                # print(confidence)
+
+                # confidenceのデータを作成する
+                confidence_df = pd.DataFrame([[X, Y, confidence]], columns=["X", "Y", "confidence"])
+                # print(confidence_df)
+                # confidenceのデータを追加する
+                self.confidence_df = pd.concat([self.confidence_df, confidence_df])
+
+        # confidenceの降順にソートする
+        self.confidence_df = self.confidence_df.sort_values("confidence", ascending=False, ignore_index=True)
+
+        return self.confidence_df
 
     def calc_association_rule(self) -> pd.DataFrame:
         pass
@@ -279,5 +360,8 @@ if __name__ == "__main__":
     # print(one_hot_df)
 
     arm = AssociationRuleMining(one_hot_df)
-    supports_df = arm.calc_support()
-    print(supports_df)
+    # supports_df = arm.calc_support()
+    # print(supports_df)
+
+    confidence_df = arm.calc_confidence()
+    print(confidence_df)
