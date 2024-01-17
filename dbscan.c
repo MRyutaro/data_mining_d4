@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
 	}
 
 	// DBSCAN//
-    double eps = 0.1;
+    double eps = 0.2;
     int min_points = 5;
     dbscan(data, data_num, eps, min_points, label);
 	//

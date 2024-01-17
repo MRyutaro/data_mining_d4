@@ -33,13 +33,16 @@ def plot_csv_data(file_path):
     # labelごとの数をカウント
     print(df.groupby('label').count().iloc[:, 0])
 
+    output_file_path = file_path.replace(".csv", ".pdf")
+    plt.savefig(output_file_path, format="pdf")
     # グラフを表示
     plt.show()
 
 
 if __name__ == "__main__":
     # コマンドライン引数からファイルパスを取得
-    file_path = sys.argv[1]
+    # file_path = sys.argv[1]
+    file_path = r"data\output\dbscan-c-three-island.csv"
 
     # CSVファイルからデータを読み込み、プロットする
     plot_csv_data(file_path)
