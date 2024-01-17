@@ -1,6 +1,7 @@
 import os
 import sys
 
+import numpy as np
 import pandas as pd
 
 
@@ -119,8 +120,29 @@ class OneHotEncoder:
 
 
 class AssociationRuleMining:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, one_hot_df: pd.DataFrame, item_num: int = 10) -> None:
+        """
+        コンストラクタ
+        
+        Parameters
+        ----------
+        one_hot_df : pd.DataFrame
+            one-hotエンコーディング後のデータ
+
+        item_num : int(default=10)
+            商品の数
+
+        Returns
+        -------
+        None
+        """
+        self.__check_one_hot_df(one_hot_df)
+        one_hot_df = one_hot_df.iloc[:, :item_num]
+        # すべてFalseの行を削除する
+        one_hot_df = one_hot_df[~(one_hot_df == False).all(axis=1)]
+        # indexを振り直す
+        self.one_hot_df = one_hot_df.reset_index(drop=True)
+        # print(self.one_hot_df)
 
     def __check_one_hot_df(self, one_hot_df: pd.DataFrame) -> None:
         """
@@ -135,45 +157,117 @@ class AssociationRuleMining:
         assert one_hot_df.dtypes.unique() == [bool], "one_hot_dfの中身はTrue/Falseにしてください"
         assert len(one_hot_df.columns) > 0, "one_hot_dfにcolumnsがありません"
 
-    def calc_freq_and_ratio_of_each_items(self, one_hot_df: pd.DataFrame) -> pd.DataFrame:
+    def __create_itemsets(self, items: list, num: int) -> list:
         """
-        各商品の頻度と割合を計算する
+        itemsからnum個の商品を選ぶすべての組み合わせを作成する
 
         Parameters
         ----------
-        one_hot_df : pd.DataFrame
-            one-hotエンコーディング後のデータ
+        items : list
+            商品のリスト
+
+        num : int
+            商品の数
+
+        Returns
+        -------
+        list
+            商品の組み合わせのリスト
+        """
+        assert isinstance(items, list), "itemsはlist型にしてください"
+        assert isinstance(num, int), "numはint型にしてください"
+        assert num > 0, "numは1以上にしてください"
+
+        itemsets = []
+        # itemsからnum個の商品を選ぶすべての組み合わせを作成する
+        for i in range(len(items)):
+            if num == 1:
+                itemsets.append([items[i]])
+            else:
+                # items[i+1:]からnum-1個の商品を選ぶすべての組み合わせを作成する
+                for itemset in self.__create_itemsets(items[i+1:], num-1):
+                    itemsets.append([items[i]] + itemset)
+
+        return itemsets
+
+    def __calc_support(self, itemset: list) -> pd.DataFrame:
+        """
+        itemsetのsupportを計算する
+
+        Parameters
+        ----------
+        itemset : list
+            商品の組み合わせ
 
         Returns
         -------
         pd.DataFrame
-            各商品の頻度と割合
+            supportのデータ
         """
-        self.__check_one_hot_df(one_hot_df)
+        assert isinstance(itemset, list), "itemsetはlist型にしてください"
+        assert len(itemset) > 0, "itemsetに商品がありません"
 
-        # 各商品の頻度を計算する
-        frequency_of_items = one_hot_df.sum(axis=0)
-        # print(frequency_of_items)
+        # itemsetの商品の列を抽出する
+        columns = self.one_hot_df[itemset]
+        # print(columns)
 
-        # 各商品の割合を計算する
-        ratio_of_items = frequency_of_items / len(one_hot_df)
-        # print(ratio_of_items)
+        # itemsetの商品がすべてTrueの行を抽出する
+        rows = columns.all(axis=1)
+        # print(rows)
 
-        # 各商品の頻度と割合を結合する
-        freq_and_ratio_of_items = pd.concat([frequency_of_items, ratio_of_items], axis=1)
-        freq_and_ratio_of_items.columns = ["frequency", "ratio"]
-        # print(freq_and_ratio_of_items)
-        # print(type(freq_and_ratio_of_items))
+        # itemsetの商品がすべてTrueの行の割合を計算する
+        support = rows.sum() / len(rows)
+        # print(support)
 
-        return freq_and_ratio_of_items
+        # supportのデータを作成する
+        support_df = pd.DataFrame([[itemset, support]], columns=["itemset", "support"])
 
-    def calc_support(self):
+        return support_df
+
+    def calc_support(self) -> pd.DataFrame:
+        """
+        self.one_hot_dfの商品のすべての組み合わせのsupportを計算する
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        pd.DataFrame
+            supportのデータ
+        """
+        # supportのデータを格納するDataFrameを作成する
+        supports_df = pd.DataFrame(columns=["itemset", "support"])
+        # itemのリストを作成する
+        items: list = list(self.one_hot_df.columns)
+        # print(items)
+
+        # 1から(商品数-1)までのforループを回す
+        for i in range(1, len(items)):
+            # i個の商品の全ての組み合わせを作成する
+            itemsets: list = self.__create_itemsets(items, i)
+            # print(len(itemsets))
+
+            # itemsetsのsupportを計算する
+            for itemset in itemsets:
+                support_df: pd.DataFrame = self.__calc_support(itemset)
+                # print(support_df)
+                # supportが0の場合は追加しない
+                if support_df["support"].values[0] == 0:
+                    continue
+                # supportのデータを追加する
+                supports_df = pd.concat([supports_df, support_df], ignore_index=True)
+
+        # supportの降順にソートする
+        supports_df = supports_df.sort_values("support", ascending=False, ignore_index=True)
+
+        return supports_df
+
+    def calc_confidence(self) -> pd.DataFrame:
         pass
 
-    def calc_confidence(self):
-        pass
-
-    def calc_association_rule(self):
+    def calc_association_rule(self) -> pd.DataFrame:
         pass
 
 
@@ -184,5 +278,6 @@ if __name__ == "__main__":
     one_hot_df = OneHotEncoder().load_onehot(file_path)
     # print(one_hot_df)
 
-    freq_and_ratio_of_items = AssociationRuleMining().calc_freq_and_ratio_of_each_items(one_hot_df)
-    print(freq_and_ratio_of_items)
+    arm = AssociationRuleMining(one_hot_df)
+    supports_df = arm.calc_support()
+    print(supports_df)
