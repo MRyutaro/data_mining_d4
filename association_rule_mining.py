@@ -370,3 +370,4 @@ if __name__ == "__main__":
 
     confidence_df = arm.calc_confidence()
     print(confidence_df)
+    confidence_df.to_csv(fr"data\output\{os.path.basename(file_path)}.confidence.csv", index=False)
