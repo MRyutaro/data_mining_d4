@@ -353,9 +353,6 @@ class AssociationRuleMining:
 
         return self.confidence_df
 
-    def calc_association_rule(self) -> pd.DataFrame:
-        pass
-
 
 if __name__ == "__main__":
     # コマンドライン引数からファイルパスを取得
