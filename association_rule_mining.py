@@ -148,7 +148,7 @@ class AssociationRuleMining:
         # supportのデータを格納するDataFrameを作成する
         self.supports_df = pd.DataFrame(columns=["itemset", "support"])                    
         # confidenceのデータを格納するDataFrameを作成する
-        self.confidence_df = pd.DataFrame(columns=["X", "Y", "confidence"])
+        self.confidence_df = pd.DataFrame(columns=["X", "Y", "X_support", "Y_support", "X_and_Y_support", "confidence"])
 
     def __check_one_hot_df(self, one_hot_df: pd.DataFrame) -> None:
         """
@@ -328,6 +328,8 @@ class AssociationRuleMining:
                 X_support = self.__get_support(X)
                 if X_support == 0:
                     continue
+                # Yのsupportを取得する
+                Y_support = self.__get_support(Y)
                 # XかつYのsupportを取得する
                 X_and_Y_support = self.__get_support(X + Y)
                 if X_and_Y_support == 0:
@@ -338,7 +340,10 @@ class AssociationRuleMining:
                 # print(confidence)
 
                 # confidenceのデータを作成する
-                confidence_df = pd.DataFrame([[X, Y, confidence]], columns=["X", "Y", "confidence"])
+                confidence_df = pd.DataFrame(
+                    [[X, Y, X_support, Y_support, X_and_Y_support, confidence]],
+                    columns=["X", "Y", "X_support", "Y_support", "X_and_Y_support", "confidence"]
+                )
                 # print(confidence_df)
                 # confidenceのデータを追加する
                 self.confidence_df = pd.concat([self.confidence_df, confidence_df])
