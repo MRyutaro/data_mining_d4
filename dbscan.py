@@ -30,10 +30,10 @@ def calculate_dbscan(file_path, eps, min_samples):
     plt.xlabel('x')
     plt.ylabel('y')
 
-    plt.savefig(r"data\output\dbscan-py-crater.pdf", format="pdf")
+    # plt.savefig(r"data\output\dbscan-py-crater.pdf", format="pdf")
 
     # グラフを表示
-    # plt.show()
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -43,4 +43,4 @@ if __name__ == "__main__":
 
     eps = 0.5
     min_samples = 5
-    calculate_dbscan(file_path)
+    calculate_dbscan(file_path, eps, min_samples)
